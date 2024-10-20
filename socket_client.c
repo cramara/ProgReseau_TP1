@@ -30,20 +30,23 @@ int main(int argc, char** argv )
   serv_addr.sin_family       = AF_INET;
   serv_addr.sin_addr.s_addr  = inet_addr(argv[1]);
   serv_addr.sin_port         = htons(atoi(argv[2]));
+   int listen(int sockfd, int backlog);
   
   /* ouvre le socket */
   if ((sockfd=socket(AF_INET,SOCK_STREAM,0))<0)
     {printf("socket error\n");exit(0);}
   
   /* effectue la connection */
-  if (connect(sockfd,(struct sockaddr*)&serv_addr,sizeof(serv_addr))<0)
-    {printf("socket error\n");exit(0);}
+  if (connect(sockfd, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0) {
+    perror("connect error");
+    close(sockfd);
+    exit(1);
+  }
     
   
   /* repete dans le socket tout ce qu'il entend */
   while (1) {
     c=getchar();
-    write (sockfd,&c,1);
     if (c == EOF) {
       printf("EOF detected, closing connection\n");
       close(sockfd);
