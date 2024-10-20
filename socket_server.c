@@ -49,12 +49,16 @@ int main(int argc, char** argv )
   
   while (1)
    { while (read(newsockfd,&c,1)!=1);
-     printf("%c",c); 
+   if (c == EOF) {
+      printf("EOF detected, closing connection\n");
+      close(sockfd);
+      exit(0);
+    }
+    else {
+      printf("%c",c); 
+    }
+     
    }
       
-   /*  attention il s'agit d'une boucle infinie 
-    *  le socket nn'est jamais ferme !
-    */
-
    return 1;
  }
