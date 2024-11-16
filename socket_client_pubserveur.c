@@ -6,6 +6,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#include <time.h>
 
 #define BUFFER_SIZE 1024
 
@@ -61,35 +62,49 @@ int main(int argc, char** argv) {
                      "Host : je suis le client\r\n"
                      "\r\n";
 
-    // Envoyer la requête HTTP
-    if (write(sockfd, request, strlen(request)) < 0) {
+    char request_time[] = "";
+
+    // Envoyer la requête
+    if (write(sockfd, request_time, strlen(request_time)) < 0) {
         perror("Erreur lors de l'envoi de la requête");
         close(sockfd);
         exit(1);
     }
 
-    printf("Requête envoyée :\n%s\n", request);
+    printf("Requête envoyée :\n%s\n", request_time);
 
     /* Lire la réponse du serveur */
     int n;
     char response[BUFFER_SIZE * 10] = {0};  // Stocker toute la réponse
+    
+    unsigned long int respTime;
     int offset = 0;
 
-    while ((n = read(sockfd, buffer, BUFFER_SIZE - 1)) > 0) {
-        buffer[n] = '\0';  // Terminer la chaîne pour l'affichage
-        strcat(response, buffer);  // Ajouter le buffer à la réponse complète
-        offset += n;
-    }
+    // while ((n = read(sockfd, buffer, BUFFER_SIZE - 1)) > 0) {
+    //     buffer[n] = '\0';  // Terminer la chaîne pour l'affichage
+    //     strcat(response, buffer);  // Ajouter le buffer à la réponse complète
+    //     offset += n;
+    // }
+
+    unsigned long int time;
+
+    read(sockfd,&time,4);
+
+    printf("retour : %ld\n",time);
+    
+    respTime = ntohl(time  - 2208988800);
+
+
 
     if (n < 0) {
         perror("Erreur de lecture");
     }
 
     // Afficher la réponse complète
-    printf("Réponse reçue :\n%s\n", response);
+    printf("date : %s",ctime(&respTime));
 
     // Extraire et afficher le titre
-    extract_title(response);
+    //extract_title(response);
 
     printf("Connexion fermée.\n");
     close(sockfd);
