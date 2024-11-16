@@ -13,8 +13,8 @@
 
 // Fonction pour extraire le contenu de la balise <title>
 void extract_title(char *response) {
-    char *start = strstr(response, "<TITLE>");
-    char *end = strstr(response, "</TITLE>");
+    char *start = strstr(response, "<title>");
+    char *end = strstr(response, "</title>");
     
     if (start != NULL && end != NULL && start < end) {
         start += 7; // Avancer après <title>
