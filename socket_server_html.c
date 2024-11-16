@@ -9,6 +9,9 @@
 
 #define BUFFER_SIZE 1024
 
+//server qui reçoit un GET / et envoie le contenu du fichier html
+//ou bien lit le message et l'affiche
+
 int send_file_content(int newsockfd, const char *filepath) {
     FILE *file = fopen(filepath, "r");
     char buffer[BUFFER_SIZE];
@@ -39,6 +42,7 @@ int main(int argc, char** argv) {
     int sockfd, newsockfd, clilen;
     char buffer[BUFFER_SIZE];
     struct sockaddr_in cli_addr, serv_addr;
+    char c;
 
     if (argc != 2) {
         printf("Usage: socket_server <port>\n");
@@ -93,14 +97,14 @@ int main(int argc, char** argv) {
 
           /* Si la requête est un GET, envoyer le fichier HTML */
           if (strncmp(buffer, "GET /", 5) == 0) {
-              send_file_content(newsockfd, "/home/cramara/4IF/ProgReseau/ProgReseau_TP1/TP1_Sockets_C.html");
+              send_file_content(newsockfd, "./../TP1_Sockets_C.html"); //mettre le chemin du fichier html
           }
-          // else {
-          //   while(read(newsockfd,&c,1) > 0)
-          //   {
-          //     write(1,&c,1)
-          //   }
-          // }
+          else {
+            while(read(newsockfd,&c,1) > 0)
+            {
+              write(1,&c,1);
+            }
+          }
           close(newsockfd);
           exit(0);
         }

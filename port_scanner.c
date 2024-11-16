@@ -8,10 +8,12 @@
 #include <arpa/inet.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <signal.h>
+
+//192.168.1.1
 
 #define MIN_PORT 1
-#define MAX_PORT 1024  // Scanner les 1024 premiers ports
-#define TIMEOUT 0.05    // Timeout réduit à 0.05 secondes, pas possible de mettre moins, sinon ça va trop vite
+#define TIMEOUT 1
 
 // Fonction pour vérifier si un port est ouvert
 int check_port(const char *host, int port) {
@@ -82,22 +84,100 @@ int check_port(const char *host, int port) {
 }
 
 int main(int argc, char *argv[]) {
-    if (argc != 2) {
-        printf("Usage: %s <hostname/IP>\n", argv[0]);
+    if (argc != 2 && argc != 3) {
+        printf("Usage: %s <hostname/IP> [max_port]\n", argv[0]);
         return 1;
     }
     
-    printf("Scanning des ports TCP pour %s...\n", argv[1]);
-    printf("Ports ouverts :\n");
-    
-    int open_ports = 0;
-    for (int port = MIN_PORT; port <= MAX_PORT; port++) {
-        if (check_port(argv[1], port)) {
-            printf("Port %d : OUVERT\n", port);
-            open_ports++;
+    // Définir MAX_PORT à partir du paramètre ou utiliser la valeur par défaut
+    int max_port = 1024; // Valeur par défaut
+    if (argc == 3) {
+        max_port = atoi(argv[2]);
+        if (max_port <= 0) {
+            printf("Le port maximum doit être un nombre positif\n");
+            return 1;
         }
     }
     
+    printf("Scanning des ports TCP pour %s (jusqu'au port %d)...\n", argv[1], max_port);
+    printf("Ports ouverts :\n");
+    
+    // Ignorer les signaux SIGCHLD pour éviter les processus zombies
+    signal(SIGCHLD, SIG_IGN);
+    
+    // Structure pour stocker les résultats
+    int *results = calloc(max_port + 1, sizeof(int));
+    if (!results) {
+        perror("calloc");
+        exit(1);
+    }
+    
+    // Créer un tube pour chaque port
+    int (*pipes)[2] = malloc((max_port + 1) * sizeof(*pipes));
+    if (!pipes) {
+        perror("malloc");
+        free(results);
+        exit(1);
+    }
+    
+    for (int port = MIN_PORT; port <= max_port; port++) {
+        if (pipe(pipes[port]) == -1) {
+            perror("pipe");
+            free(results);
+            free(pipes);
+            exit(1);
+        }
+    }
+    
+    // Scanner chaque port dans un processus séparé
+    for (int port = MIN_PORT; port <= max_port; port++) {
+        pid_t pid = fork();
+        
+        if (pid == -1) {
+            perror("fork");
+            free(results);
+            free(pipes);
+            exit(1);
+        }
+        
+        if (pid == 0) { // Processus fils
+            // Fermer tous les descripteurs de fichiers inutiles
+            for (int p = MIN_PORT; p <= max_port; p++) {
+                if (p != port) {
+                    close(pipes[p][0]);
+                    close(pipes[p][1]);
+                }
+            }
+            
+            int result = check_port(argv[1], port);
+            write(pipes[port][1], &result, sizeof(result));
+            close(pipes[port][1]);
+            
+            free(results);
+            free(pipes);
+            exit(0);
+        }
+    }
+    
+    // Processus parent : collecter les résultats
+    int open_ports = 0;
+    for (int port = MIN_PORT; port <= max_port; port++) {
+        close(pipes[port][1]); // Fermer l'extrémité d'écriture
+        
+        int result;
+        if (read(pipes[port][0], &result, sizeof(result)) > 0) {
+            if (result) {
+                printf("Port %d : OUVERT\n", port);
+                open_ports++;
+            }
+        }
+        close(pipes[port][0]);
+    }
+    
     printf("\nScan terminé. %d ports ouverts trouvés.\n", open_ports);
+    
+    // Libérer la mémoire
+    free(results);
+    free(pipes);
     return 0;
 } 
