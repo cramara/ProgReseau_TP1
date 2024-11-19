@@ -8,7 +8,7 @@ Si on voit le message d'erreur "Impossible de faire le bind" lors de l'exécutio
 
 Lancer le client time :
 
-```./bin/time_client 129.6.15.28```
+```./time_client 129.6.15.28```
 
 Et ça nous renvoi l'heure en utilisant le protocole Time :
 
@@ -18,13 +18,13 @@ Et ça nous renvoi l'heure en utilisant le protocole Time :
 
 On commence par lancer le serveur sur le port 9999 :
 
-```./bin/socket_server_html 9999```
+```./socket_server_html 9999```
 
 > Server starting...
 
 Puis on peut lancer le client_msg en localhost sur le port 9999 :
 
-```./bin/socket_client_msg 127.0.0.1 9999```
+```./socket_client_msg 127.0.0.1 9999```
 
 > Client starting
 Connexion établie avec le serveur.
@@ -36,7 +36,7 @@ On peut aussi lancer plusieurs clients en même temps
 
 On peut essayer de récupérer la page de google en faisant :
 
-```./bin/socket_client_http google.fr 80```
+```./socket_client_http google.fr 80```
 
 Cela nous affiche dans le terminal la page reçu et à la fin son titre (balise ```<title></title>```)
 
@@ -44,7 +44,7 @@ Cela nous affiche dans le terminal la page reçu et à la fin son titre (balise 
 
 Pour cela on lance port_scanner en précisant (ou pas) jusqu'à quel port on veut scanner :
 
-```./bin/port_scanner 192.168.1.1 1000```
+```./port_scanner 192.168.1.1 1000```
 
 Pour scanner jusqu'au port 1000, si on ne met rien on scanne jusqu'au port 1024 par défaut
 
@@ -52,7 +52,7 @@ Pour scanner jusqu'au port 1000, si on ne met rien on scanne jusqu'au port 1024 
 
 On lance server_html sur le port 9999:
 
- ```./bin/socket_server_html 9999```
+ ```./socket_server_html 9999```
 
 Puis on peut soit ouvrir dans notre explorateur : ```localhost:9999```
 
@@ -60,7 +60,7 @@ Et on verra apparaître la page html avec les consignes du TP
 
 Sinon on lance socket_client_http, qui lui va envoyer une requête GET au serveur :
 
-```./bin/socket_client_http 127.0.0.1 9999```
+```./socket_client_http 127.0.0.1 9999```
 
 La page sera alors affichée dans le termial ainsi que son titre : "Requête bien reçue"
 
