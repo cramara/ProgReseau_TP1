@@ -91,38 +91,41 @@ int main(int argc, char** argv) {
             printf("Connexion d'un client\n");
 
             int get_request = 0;
+            char buffer[BUFFER_SIZE];
+            memset(buffer, 0, BUFFER_SIZE);
+            int buf_pos = 0;
 
             // Lire et afficher caractère par caractère
             while(read(newsockfd, &c, 1) > 0) {
                 write(1, &c, 1); // Affiche le caractère sur la sortie standard
                 fflush(stdout);
-                // Vérifier si la requête commence par "GET /"
-                if (c == 'G') {
-                    char req[4];  // Pour stocker "GET "
-                    req[0] = c;
-                    
-                    // Lire les 3 caractères suivants
-                    for(int i = 1; i < 4; i++) {
-                        if(read(newsockfd, &req[i], 1) <= 0) break;
-                    }
-                    
-                    // Si c'est "GET " suivi de '/', sortir de la boucle
-                    if(strncmp(req, "GET ", 4) == 0) {
-                        char slash;
-                        if(read(newsockfd, &slash, 1) > 0 && slash == '/') {
-                            get_request = 1;
-                            break;
-                        }
-                    }
+
+                // Stocker le caractère dans le buffer
+                buffer[buf_pos++] = c;
+                
+                // Si on a au moins 4 caractères, vérifier si c'est "GET "
+                if (buf_pos >= 4 && strncmp(buffer, "GET ", 4) == 0) {
+                    get_request = 1;
+                    break;
+                }
+                
+                // Si on a dépassé 4 caractères et ce n'est pas "GET ", c'est un message normal
+                if (buf_pos >= 4 && !get_request) {
+                    break;
                 }
             }
 
-            if(get_request == 1) {
-                /* Lire la requête du client */
-                memset(buffer, 0, BUFFER_SIZE);
-                read(newsockfd, buffer, BUFFER_SIZE - 1);
-                printf("Requête reçue :\n%s", buffer); 
-                send_file_content(newsockfd, "./../TP1_Sockets_C.html"); //mettre le chemin du fichier html
+            if(get_request) {
+                // Lire le reste de la requête HTTP
+                read(newsockfd, buffer + buf_pos, BUFFER_SIZE - buf_pos - 1);
+                printf("Requête reçue :\n%s", buffer);
+                send_file_content(newsockfd, "./../TP1_Sockets_C.html");
+            } else {
+                // Continuer à lire les messages normaux
+                while(read(newsockfd, &c, 1) > 0) {
+                    write(1, &c, 1);
+                    fflush(stdout);
+                }
             }
           close(newsockfd);
           exit(0);
