@@ -1,6 +1,6 @@
 ## Comment faire pour tester les différentes fonctionnalités ?
 
-Pour commencer il faut faire un ```make```
+Pour commencer il faut faire un ```make```, puis allez dans le dossier bin : ```cd bin```
 
 Si on voit le message d'erreur "Impossible de faire le bind" lors de l'exécution d'un exécutable,cela veut dire que le port est utilisé par un autre programme. Veuillez essayer de relancer la commande avec un autre port
 
@@ -10,7 +10,9 @@ Lancer le client time :
 
 ```./time_client 129.6.15.28```
 
-Et ça nous renvoi l'heure en utilisant le protocole Time
+Et ça nous renvoi l'heure en utilisant le protocole Time : 
+
+> Date et heure reçues : Tue Nov 19 14:06:38 2024
 
 ### <u> Exo 3 :</u> Réécrivez le programme exemple (socket_server et socket_client) de façon à ce que les clients soient traités en parallèle par le serveur. 
 
@@ -18,9 +20,14 @@ On commence par lancer le serveur sur le port 9999 :
 
 ```./socket_server_html 9999```
 
+> Server starting...
+
 Puis on peut lancer le client_msg en localhost sur le port 9999 :
 
 ```./socket_client_msg 127.0.0.1 9999```
+
+> Client starting
+Connexion établie avec le serveur.
 
 On peut maintenant essayer d'envoyer un message et voir qu'il apparaît sur le serveur.  
 On peut aussi lancer plusieurs clients en même temps

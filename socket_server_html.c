@@ -76,7 +76,7 @@ int main(int argc, char** argv) {
     int pid;
 
     while (1) {
-        newsockfd = accept(sockfd, (struct sockaddr*)&cli_addr, &clilen);
+        newsockfd = accept(sockfd, (struct sockaddr*)&cli_addr, (socklen_t*)&clilen);
 
         if (newsockfd < 0) {
             printf("Erreur lors de l'acceptation de la connexion\n");
@@ -87,24 +87,43 @@ int main(int argc, char** argv) {
 
         if (pid == 0)
         {
-          close(sockfd);
-          printf("Connexion d'un client\n");
+            close(sockfd);
+            printf("Connexion d'un client\n");
 
-          /* Lire la requête du client */
-          bzero(buffer, BUFFER_SIZE);
-          read(newsockfd, buffer, BUFFER_SIZE - 1);
-          printf("Requête reçue :\n%s\n", buffer);
+            int get_request = 0;
 
-          /* Si la requête est un GET, envoyer le fichier HTML */
-          if (strncmp(buffer, "GET /", 5) == 0) {
-              send_file_content(newsockfd, "./../TP1_Sockets_C.html"); //mettre le chemin du fichier html
-          }
-          else {
-            while(read(newsockfd,&c,1) > 0)
-            {
-              write(1,&c,1);
+            // Lire et afficher caractère par caractère
+            while(read(newsockfd, &c, 1) > 0) {
+                write(1, &c, 1); // Affiche le caractère sur la sortie standard
+                fflush(stdout);
+                // Vérifier si la requête commence par "GET /"
+                if (c == 'G') {
+                    char req[4];  // Pour stocker "GET "
+                    req[0] = c;
+                    
+                    // Lire les 3 caractères suivants
+                    for(int i = 1; i < 4; i++) {
+                        if(read(newsockfd, &req[i], 1) <= 0) break;
+                    }
+                    
+                    // Si c'est "GET " suivi de '/', sortir de la boucle
+                    if(strncmp(req, "GET ", 4) == 0) {
+                        char slash;
+                        if(read(newsockfd, &slash, 1) > 0 && slash == '/') {
+                            get_request = 1;
+                            break;
+                        }
+                    }
+                }
             }
-          }
+
+            if(get_request == 1) {
+                /* Lire la requête du client */
+                memset(buffer, 0, BUFFER_SIZE);
+                read(newsockfd, buffer, BUFFER_SIZE - 1);
+                printf("Requête reçue :\n%s", buffer); 
+                send_file_content(newsockfd, "./../TP1_Sockets_C.html"); //mettre le chemin du fichier html
+            }
           close(newsockfd);
           exit(0);
         }
